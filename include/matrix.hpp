@@ -2,7 +2,7 @@
 #define CHISLAKI_MATRIX_HPP_
 
 #include <iostream>
-#include <numeric>
+#include <limits>
 #include <vector>
 
 namespace chislaki {
@@ -19,6 +19,13 @@ public:
     using const_reference = const T&;
     using iterator = T*;
     using const_iterator = const T*;
+
+    template <class Type>
+    friend matrix<Type> operator*(const matrix<Type>& matr,
+                                  Type alpha) noexcept;
+    template <class Type>
+    friend matrix<Type> operator*(Type alpha,
+                                  const matrix<Type>& matr) noexcept;
 
     matrix(index_type rows, index_type columns)
         : rows_{rows}, columns_{columns}, data_(rows * columns) {
@@ -72,7 +79,7 @@ public:
     }
 
     reference at(index_type row, index_type column) {
-        if (!(row << rows() && column < rows())) {
+        if (!(row < rows() && column < columns())) {
             throw bad_index{};
         }
         return data_[row * columns() + column];
@@ -83,9 +90,8 @@ public:
     T row_max_index(index_type row) const { return row_max(row).first; }
 
     std::pair<index_type, T> row_max(index_type row) const {
-        return row_max_min(
-            std::numeric_limits<T>::min(), row,
-            [this](T left, T right) { return left > right; });
+        return row_max_min(std::numeric_limits<T>::min(), row,
+                           [this](T left, T right) { return left > right; });
     }
 
     T col_max_value(index_type column) const {
@@ -123,9 +129,38 @@ public:
                               [this](T left, T right) { return left < right; });
     }
 
-    void swap_rows(std::size_t row1, std::size_t row2) {
-        // TODO: Implement!
+    void swap_rows(index_type row1_index, index_type row2_index) {
+        std::vector<T> row1(columns());
+
+        std::copy(data_.begin() + row1_index * columns(),
+                  data_.begin() + row1_index * columns() + columns(),
+                  row1.begin());
+
+        std::copy(data_.begin() + row2_index * columns(),
+                  data_.begin() + row2_index * columns() + columns(),
+                  data_.begin() + row1_index * columns());
+
+        std::copy(row1.begin(), row1.end(),
+                  data_.begin() + row2_index * columns());
     }
+
+    void swap_columns(index_type col1_index, index_type col2_index) {
+        for (index_type i = 0; i < rows(); i++) {
+            std::swap(at(i, col1_index), at(i, col2_index));
+        }
+    }
+
+    matrix operator+(const matrix& matr) const {
+        return plus_minus_operator(matr,
+                                   [](T lhs, T rhs) { return lhs + rhs; });
+    }
+
+    matrix operator-(const matrix& matr) const {
+        return plus_minus_operator(matr,
+                                   [](T lhs, T rhs) { return lhs - rhs; });
+    }
+
+    matrix operator-() const { return -1 * (*this); }
 
 private:
     template <class P>
@@ -158,10 +193,42 @@ private:
         return std::make_pair(current_index, current_value);
     }
 
+    template <class F>
+    matrix plus_minus_operator(const matrix& matr, F&& functor) const {
+        matrix result{rows(), columns()};
+
+        if (rows() != matr.rows() && columns() != matr.columns()) {
+            throw bad_size{};
+        }
+
+        for (index_type i = 0; i < rows() * columns(); i++) {
+            result.data_[i] = functor(data_[i], matr.data_[i]);
+        }
+
+        return result;
+    }
+
     index_type rows_;
     index_type columns_;
     std::vector<T> data_;
 };  // class matrix
+
+template <class T>
+matrix<T> operator*(const matrix<T>& matr, T alpha) noexcept {
+    matrix<T> result{matr.rows(), matr.columns()};
+
+    using index_type = typename matrix<T>::index_type;
+    for (index_type i = 0; i < matr.rows() * matr.columns(); i++) {
+        result.data_[i] = alpha * matr.data_[i];
+    }
+
+    return result;
+}
+
+template <class T>
+matrix<T> operator*(T alpha, const matrix<T>& matr) noexcept {
+    return matr * alpha;
+}
 
 template <class T>
 std::ostream& operator<<(std::ostream& os, const matrix<T>& matr) {
