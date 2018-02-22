@@ -1,5 +1,5 @@
-#ifndef CHISLAKI_MATRIX_HPP_
-#define CHISLAKI_MATRIX_HPP_
+#ifndef CHISLAKI_LINALG_MATRIX_HPP_
+#define CHISLAKI_LINALG_MATRIX_HPP_
 
 #include <iostream>
 #include <limits>
@@ -300,4 +300,4 @@ std::istream& operator>>(std::istream& is, matrix<T>& matr) {
 
 }  // namespace chislaki
 
-#endif  // CHISLAKI_MATRIX_HPP_
+#endif  // CHISLAKI_LINALG_MATRIX_HPP_
