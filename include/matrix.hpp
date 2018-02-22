@@ -7,6 +7,7 @@
 
 namespace chislaki {
 
+// exceptions
 class bad_index {};
 class bad_size {};
 
@@ -20,12 +21,20 @@ public:
     using iterator = T*;
     using const_iterator = const T*;
 
+    // **********************************************************************
+    // ************************** Friend functions **************************
+    // **********************************************************************
+
     template <class Type>
     friend matrix<Type> operator*(const matrix<Type>& matr,
                                   Type alpha) noexcept;
     template <class Type>
     friend matrix<Type> operator*(Type alpha,
                                   const matrix<Type>& matr) noexcept;
+
+    // **********************************************************************
+    // **************************** Constructors ****************************
+    // **********************************************************************
 
     matrix(index_type rows, index_type columns)
         : rows_{rows}, columns_{columns}, data_(rows * columns) {
@@ -44,25 +53,41 @@ public:
         matr.data_ = std::vector<T>();
     }
 
-    index_type columns() const noexcept { return columns_; }
+    // ***********************************************************************
+    // ***************************** Matrix size *****************************
+    // ***********************************************************************
 
-    index_type rows() const noexcept { return rows_; }
+    inline index_type columns() const noexcept { return columns_; }
 
-    const_iterator data() const noexcept { return data_.data(); }
+    inline index_type rows() const noexcept { return rows_; }
 
-    iterator data() noexcept { return data_.data(); }
+    // **********************************************************************
+    // ****************************** Raw data ******************************
+    // **********************************************************************
 
-    const_iterator begin() const noexcept { return &data_[0]; }
+    inline const_iterator data() const noexcept { return data_.data(); }
 
-    iterator begin() noexcept { return &data_[0]; }
+    inline iterator data() noexcept { return data_.data(); }
 
-    const_iterator end() const noexcept {
+    // ***********************************************************************
+    // ****************************** Iterators ******************************
+    // ***********************************************************************
+
+    inline const_iterator begin() const noexcept { return &data_.data(); }
+
+    inline iterator begin() noexcept { return &data_.data(); }
+
+    inline const_iterator end() const noexcept {
         return &data_[rows() * columns() - 1];
     }
 
-    iterator end() noexcept { return &data_[rows() * columns() - 1]; }
+    inline iterator end() noexcept { return &data_[rows() * columns() - 1]; }
 
-    const_reference operator()(index_type row, index_type column) const
+    // **********************************************************************
+    // ****************************** Indexing ******************************
+    // **********************************************************************
+
+    inline const_reference operator()(index_type row, index_type column) const
         noexcept {
         return data_[row * columns() + column];
     }
@@ -74,7 +99,7 @@ public:
         return data_[row * columns() + column];
     }
 
-    reference operator()(index_type row, index_type column) noexcept {
+    inline reference operator()(index_type row, index_type column) noexcept {
         return data_[row * columns() + column];
     }
 
@@ -84,6 +109,10 @@ public:
         }
         return data_[row * columns() + column];
     }
+
+    // **********************************************************************
+    // ***************************** Algorithms *****************************
+    // **********************************************************************
 
     T row_max_value(index_type row) const { return row_max(row).second; }
 
@@ -150,6 +179,10 @@ public:
         }
     }
 
+    // **********************************************************************
+    // ************************ Arithmetic operators ************************
+    // **********************************************************************
+
     matrix operator+(const matrix& matr) const {
         return plus_minus_operator(matr,
                                    [](T lhs, T rhs) { return lhs + rhs; });
@@ -208,10 +241,18 @@ private:
         return result;
     }
 
+    // **********************************************************************
+    // ************************** Member variables **************************
+    // **********************************************************************
+
     index_type rows_;
     index_type columns_;
     std::vector<T> data_;
 };  // class matrix
+
+// ***********************************************************************
+// *********************** Matrix friend functions ***********************
+// ***********************************************************************
 
 template <class T>
 matrix<T> operator*(const matrix<T>& matr, T alpha) noexcept {
@@ -229,6 +270,10 @@ template <class T>
 matrix<T> operator*(T alpha, const matrix<T>& matr) noexcept {
     return matr * alpha;
 }
+
+// **********************************************************************
+// **************************** IO operators ****************************
+// **********************************************************************
 
 template <class T>
 std::ostream& operator<<(std::ostream& os, const matrix<T>& matr) {
