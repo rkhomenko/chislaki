@@ -36,12 +36,16 @@ public:
     // **************************** Constructors ****************************
     // **********************************************************************
 
+    matrix(index_type n) : matrix(n, n) {}
+
     matrix(index_type rows, index_type columns)
         : rows_{rows}, columns_{columns}, data_(rows * columns) {
         if (rows == 0 || columns == 0) {
             throw bad_size{};
         }
     }
+
+    matrix(index_type n, const std::vector<T>& data) : matrix(n, n, data) {}
 
     matrix(index_type rows, index_type columns, const std::vector<T>& data)
         : rows_{rows}, columns_{columns}, data_{data} {}
@@ -73,15 +77,15 @@ public:
     // ****************************** Iterators ******************************
     // ***********************************************************************
 
-    inline const_iterator begin() const noexcept { return &data_.data(); }
+    inline const_iterator begin() const noexcept { return data(); }
 
-    inline iterator begin() noexcept { return &data_.data(); }
+    inline iterator begin() noexcept { return data(); }
 
     inline const_iterator end() const noexcept {
-        return &data_[rows() * columns() - 1];
+        return &data()[rows() * columns() - 1];
     }
 
-    inline iterator end() noexcept { return &data_[rows() * columns() - 1]; }
+    inline iterator end() noexcept { return &data()[rows() * columns() - 1]; }
 
     // **********************************************************************
     // ****************************** Indexing ******************************
@@ -114,13 +118,29 @@ public:
     // ***************************** Algorithms *****************************
     // **********************************************************************
 
+    // **********************************************************************
+    // *********************** Row and column maximum ***********************
+    // **********************************************************************
+
     T row_max_value(index_type row) const { return row_max(row).second; }
 
     T row_max_index(index_type row) const { return row_max(row).first; }
 
     std::pair<index_type, T> row_max(index_type row) const {
         return row_max_min(std::numeric_limits<T>::min(), row,
-                           [this](T left, T right) { return left > right; });
+                           [](T left, T right) { return left > right; });
+    }
+
+    T row_max_abs_value(index_type row) const {
+        return row_max_abs(row).second;
+    }
+
+    T row_max_abs_index(index_type row) const { return row_max_abs(row).first; }
+
+    std::pair<index_type, T> row_max_abs(index_type row) const {
+        return row_max_min(0, row, [](T left, T right) {
+            return std::abs(left) > std::abs(right);
+        });
     }
 
     T col_max_value(index_type column) const {
@@ -133,8 +153,26 @@ public:
 
     std::pair<index_type, T> column_max(index_type index) const {
         return column_max_min(std::numeric_limits<T>::min(), index,
-                              [this](T left, T right) { return left > right; });
+                              [](T left, T right) { return left > right; });
     }
+
+    T col_max_abs_value(index_type column) const {
+        return column_max_abs(column).second;
+    }
+
+    T col_max_abs_index(index_type column) const {
+        return column_max_abs(column).first;
+    }
+
+    std::pair<index_type, T> column_max_abs(index_type index) const {
+        return column_max_min(0, index, [](T left, T right) {
+            return std::abs(left) > std::abs(right);
+        });
+    }
+
+    // **********************************************************************
+    // *********************** Row and column minimum ***********************
+    // **********************************************************************
 
     T row_min_value(index_type row) const { return row_min(row).second; }
 
@@ -142,7 +180,19 @@ public:
 
     std::pair<index_type, T> row_min(index_type row) const {
         return row_max_min(std::numeric_limits<T>::max(), row,
-                           [this](T left, T right) { return left < right; });
+                           [](T left, T right) { return left < right; });
+    }
+
+    T row_min_abs_value(index_type row) const {
+        return row_min_abs(row).second;
+    }
+
+    T row_abs_index(index_type row) const { return row_min_abs(row).first; }
+
+    std::pair<index_type, T> row_min_abs(index_type row) const {
+        return row_max_min(
+            std::numeric_limits<T>::max(), row,
+            [](T left, T right) { return std::abs(left) < (right); });
     }
 
     T col_min_value(index_type column) const {
@@ -157,6 +207,24 @@ public:
         return column_max_min(std::numeric_limits<T>::max(), column,
                               [this](T left, T right) { return left < right; });
     }
+
+    T col_min_abs_value(index_type column) const {
+        return column_min_abs(column).second;
+    }
+
+    T col_min_abs_index(index_type column) const {
+        return column_min_abs(column).first;
+    }
+
+    std::pair<index_type, T> column_min_abs(index_type column) const {
+        return column_max_min(
+            std::numeric_limits<T>::max(), column,
+            [](T left, T right) { return std::abs(left) < std::abs(right); });
+    }
+
+    // ***********************************************************************
+    // ************************ Rows and columns swap ************************
+    // ***********************************************************************
 
     void swap_rows(index_type row1_index, index_type row2_index) {
         std::vector<T> row1(columns());
@@ -195,9 +263,33 @@ public:
 
     matrix operator-() const { return -1 * (*this); }
 
+    // ***********************************************************************
+    // *********************** Static member functions ***********************
+    // ***********************************************************************
+
+    static matrix eye(index_type size) {
+        auto result = matrix(size);
+        for (index_type i = 0; i < result.rows(); i++) {
+            result(i, i) = 1;
+        }
+        return result;
+    }
+
+    static inline matrix row(index_type size) { return matrix(1, size); }
+
+    static inline matrix row(index_type size, const std::vector<T>& data) {
+        return matrix(1, size, data);
+    }
+
+    static inline matrix column(index_type size) { return matrix(size, 1); }
+
+    static inline matrix column(index_type size, const std::vector<T>& data) {
+        return matrix(size, 1, data);
+    }
+
 private:
     template <class P>
-    std::pair<std::size_t, T> column_max_min(value_type start_value,
+    std::pair<index_type, T> column_max_min(value_type start_value,
                                              index_type index,
                                              P&& compare) const {
         T current_value = start_value;
@@ -212,7 +304,7 @@ private:
     }
 
     template <class P>
-    std::pair<std::size_t, T> row_max_min(value_type start_value,
+    std::pair<index_type, T> row_max_min(value_type start_value,
                                           index_type index,
                                           P&& compare) const {
         T current_value = start_value;
