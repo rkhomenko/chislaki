@@ -6,6 +6,11 @@
 #include <tuple>
 
 namespace chislaki {
+
+// ***********************************************************************
+// ************************** LUP decomposition **************************
+// ***********************************************************************
+
 template <class T>
 std::tuple<matrix<T>, matrix<T>, matrix<T>> LUP_decomposition(
     const matrix<T>& matr) {
