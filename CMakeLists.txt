@@ -30,6 +30,6 @@ if(MAKE_TESTS)
         string(REGEX REPLACE ".${SOURCE_SUFFIX}" "" TARGET_NAME ${TEST_FILE_NAME})
 
         add_executable(${TARGET_NAME} ${TEST_FILE} ${INCLUDES})
-        set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD_REQUIRED 17)
+        set_property(TARGET ${TARGET_NAME} PROPERTY CXX_STANDARD 17)
     endforeach()
 endif()
