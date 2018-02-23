@@ -1,8 +1,8 @@
 #ifndef CHISLAKI_LINALG_MATRIX_HPP_
 #define CHISLAKI_LINALG_MATRIX_HPP_
 
+#include <iomanip>
 #include <iostream>
-#include <limits>
 #include <vector>
 
 namespace chislaki {
@@ -114,114 +114,6 @@ public:
         return data_[row * columns() + column];
     }
 
-    // **********************************************************************
-    // ***************************** Algorithms *****************************
-    // **********************************************************************
-
-    // **********************************************************************
-    // *********************** Row and column maximum ***********************
-    // **********************************************************************
-
-    T row_max_value(index_type row) const { return row_max(row).second; }
-
-    T row_max_index(index_type row) const { return row_max(row).first; }
-
-    std::pair<index_type, T> row_max(index_type row) const {
-        return row_max_min(std::numeric_limits<T>::min(), row,
-                           [](T left, T right) { return left > right; });
-    }
-
-    T row_max_abs_value(index_type row) const {
-        return row_max_abs(row).second;
-    }
-
-    T row_max_abs_index(index_type row) const { return row_max_abs(row).first; }
-
-    std::pair<index_type, T> row_max_abs(index_type row) const {
-        return row_max_min(0, row, [](T left, T right) {
-            return std::abs(left) > std::abs(right);
-        });
-    }
-
-    T col_max_value(index_type column) const {
-        return column_max(column).second;
-    }
-
-    T col_max_index(index_type column) const {
-        return column_max(column).first;
-    }
-
-    std::pair<index_type, T> column_max(index_type index) const {
-        return column_max_min(std::numeric_limits<T>::min(), index,
-                              [](T left, T right) { return left > right; });
-    }
-
-    T col_max_abs_value(index_type column) const {
-        return column_max_abs(column).second;
-    }
-
-    T col_max_abs_index(index_type column) const {
-        return column_max_abs(column).first;
-    }
-
-    std::pair<index_type, T> column_max_abs(index_type index) const {
-        return column_max_min(0, index, [](T left, T right) {
-            return std::abs(left) > std::abs(right);
-        });
-    }
-
-    // **********************************************************************
-    // *********************** Row and column minimum ***********************
-    // **********************************************************************
-
-    T row_min_value(index_type row) const { return row_min(row).second; }
-
-    T row_min_index(index_type row) const { return row_min(row).first; }
-
-    std::pair<index_type, T> row_min(index_type row) const {
-        return row_max_min(std::numeric_limits<T>::max(), row,
-                           [](T left, T right) { return left < right; });
-    }
-
-    T row_min_abs_value(index_type row) const {
-        return row_min_abs(row).second;
-    }
-
-    T row_abs_index(index_type row) const { return row_min_abs(row).first; }
-
-    std::pair<index_type, T> row_min_abs(index_type row) const {
-        return row_max_min(
-            std::numeric_limits<T>::max(), row,
-            [](T left, T right) { return std::abs(left) < (right); });
-    }
-
-    T col_min_value(index_type column) const {
-        return column_min(column).second;
-    }
-
-    T col_min_index(index_type column) const {
-        return column_min(column).first;
-    }
-
-    std::pair<index_type, T> column_min(index_type column) const {
-        return column_max_min(std::numeric_limits<T>::max(), column,
-                              [this](T left, T right) { return left < right; });
-    }
-
-    T col_min_abs_value(index_type column) const {
-        return column_min_abs(column).second;
-    }
-
-    T col_min_abs_index(index_type column) const {
-        return column_min_abs(column).first;
-    }
-
-    std::pair<index_type, T> column_min_abs(index_type column) const {
-        return column_max_min(
-            std::numeric_limits<T>::max(), column,
-            [](T left, T right) { return std::abs(left) < std::abs(right); });
-    }
-
     // ***********************************************************************
     // ************************ Rows and columns swap ************************
     // ***********************************************************************
@@ -261,6 +153,26 @@ public:
                                    [](T lhs, T rhs) { return lhs - rhs; });
     }
 
+    matrix operator*(const matrix& right) const {
+        const auto& left = *this;
+
+        if (left.columns() != right.rows()) {
+            throw bad_size{};
+        }
+
+        auto result = matrix(left.rows(), right.columns());
+
+        for (index_type i = 0; i < left.rows(); i++) {
+            for (index_type j = 0; j < right.columns(); j++) {
+                for (index_type k = 0; k < right.columns(); k++) {
+                    result(i, j) += left(i, k) * right(k, j);
+                }
+            }
+        }
+
+        return result;
+    }
+
     matrix operator-() const { return -1 * (*this); }
 
     // ***********************************************************************
@@ -288,35 +200,9 @@ public:
     }
 
 private:
-    template <class P>
-    std::pair<index_type, T> column_max_min(value_type start_value,
-                                             index_type index,
-                                             P&& compare) const {
-        T current_value = start_value;
-        std::size_t current_index = 0;
-        for (std::size_t i = 0; i < rows(); i++) {
-            if (compare(at(i, index), current_value)) {
-                current_value = at(i, index);
-                current_index = i;
-            }
-        }
-        return std::make_pair(current_index, current_value);
-    }
-
-    template <class P>
-    std::pair<index_type, T> row_max_min(value_type start_value,
-                                          index_type index,
-                                          P&& compare) const {
-        T current_value = start_value;
-        std::size_t current_index = 0;
-        for (std::size_t j = 0; j < columns(); j++) {
-            if (compare(at(index, j), current_value)) {
-                current_value = at(index, j);
-                current_index = j;
-            }
-        }
-        return std::make_pair(current_index, current_value);
-    }
+    // **********************************************************************
+    // ********************** Private member functions **********************
+    // **********************************************************************
 
     template <class F>
     matrix plus_minus_operator(const matrix& matr, F&& functor) const {
@@ -371,7 +257,7 @@ template <class T>
 std::ostream& operator<<(std::ostream& os, const matrix<T>& matr) {
     for (std::size_t i = 0; i < matr.rows(); i++) {
         for (std::size_t j = 0; j < matr.columns(); j++) {
-            os << matr(i, j) << " ";
+            os << std::setw(8) << std::setprecision(4) << matr(i, j) << " ";
         }
         os << std::endl;
     }
