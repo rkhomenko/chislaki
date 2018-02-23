@@ -114,6 +114,28 @@ public:
         return data_[row * columns() + column];
     }
 
+    const_reference operator()(index_type index) const noexcept {
+        return (rows() == 1) ? (*this)(0, index) : (*this)(index, 0);
+    }
+
+    reference operator()(index_type index) noexcept {
+        return (rows() == 1) ? (*this)(0, index) : (*this)(index, 0);
+    }
+
+    const_reference at(index_type index) const {
+        if (rows() != 1 && columns() != 1) {
+            throw bad_size{};
+        }
+        return (rows() == 1) ? at(0, index) : at(index, 0);
+    }
+
+    reference at(index_type index) {
+        if (rows() != 1 && columns() != 1) {
+            throw bad_size{};
+        }
+        return (rows() == 1) ? at(0, index) : at(index, 0);
+    }
+
     // ***********************************************************************
     // ************************ Rows and columns swap ************************
     // ***********************************************************************
@@ -164,7 +186,7 @@ public:
 
         for (index_type i = 0; i < left.rows(); i++) {
             for (index_type j = 0; j < right.columns(); j++) {
-                for (index_type k = 0; k < right.columns(); k++) {
+                for (index_type k = 0; k < left.columns(); k++) {
                     result(i, j) += left(i, k) * right(k, j);
                 }
             }
