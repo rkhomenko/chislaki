@@ -10,11 +10,15 @@ namespace chislaki {
 // exceptions
 class bad_index {};
 class bad_size {};
+class degenerate {};
+
+// global types
+using size_type = std::size_t;
+using index_type = std::size_t;
 
 template <class T>
 class matrix {
 public:
-    using index_type = std::size_t;
     using value_type = T;
     using reference = T&;
     using const_reference = const T&;
@@ -36,21 +40,23 @@ public:
     // **************************** Constructors ****************************
     // **********************************************************************
 
-    matrix(index_type n) : matrix(n, n) {}
+    matrix(size_type n) : matrix(n, n) {}
 
-    matrix(index_type rows, index_type columns)
+    matrix(size_type rows, size_type columns)
         : rows_{rows}, columns_{columns}, data_(rows * columns) {
         if (rows == 0 || columns == 0) {
             throw bad_size{};
         }
     }
 
-    matrix(index_type n, const std::vector<T>& data) : matrix(n, n, data) {}
+    matrix(size_type n, const std::vector<T>& data) : matrix(n, n, data) {}
 
-    matrix(index_type rows, index_type columns, const std::vector<T>& data)
+    matrix(size_type rows, size_type columns, const std::vector<T>& data)
         : rows_{rows}, columns_{columns}, data_{data} {}
 
     matrix(const matrix& matr) = default;
+
+    matrix& operator=(const matrix& matr) = default;
 
     matrix(matrix&& matr) : rows_{matr.rows_}, columns_{matr.columns_} {
         data_ = matr.data_;
@@ -61,9 +67,41 @@ public:
     // ***************************** Matrix size *****************************
     // ***********************************************************************
 
-    inline index_type columns() const noexcept { return columns_; }
+    inline size_type columns() const noexcept { return columns_; }
 
-    inline index_type rows() const noexcept { return rows_; }
+    inline size_type rows() const noexcept { return rows_; }
+
+    // ***********************************************************************
+    // ************************ Row and column access ************************
+    // ***********************************************************************
+
+    matrix row(index_type index) const noexcept {
+        auto result = matrix(1, columns());
+        for (index_type j = 0; j < columns(); j++) {
+            result(0, j) = (*this)(index, j);
+        }
+        return result;
+    }
+
+    matrix column(index_type index) const noexcept {
+        auto result = matrix(rows(), 1);
+        for (index_type i = 0; i < rows(); i++) {
+            result(i, 0) = (*this)(i, index);
+        }
+        return result;
+    }
+
+    void set_row(index_type index, const matrix& matr) noexcept {
+        for (index_type j = 0; j < columns(); j++) {
+            (*this)(index, j) = matr(0, j);
+        }
+    }
+
+    void set_column(index_type index, const matrix& matr) noexcept {
+        for (index_type i = 0; i < rows(); i++) {
+            (*this)(i, index) = matr(i, 0);
+        }
+    }
 
     // **********************************************************************
     // ****************************** Raw data ******************************
@@ -201,7 +239,7 @@ public:
     // *********************** Static member functions ***********************
     // ***********************************************************************
 
-    static matrix eye(index_type size) {
+    static matrix make_eye(size_type size) {
         auto result = matrix(size);
         for (index_type i = 0; i < result.rows(); i++) {
             result(i, i) = 1;
@@ -209,15 +247,16 @@ public:
         return result;
     }
 
-    static inline matrix row(index_type size) { return matrix(1, size); }
+    static inline matrix make_row(size_type size) { return matrix(1, size); }
 
-    static inline matrix row(index_type size, const std::vector<T>& data) {
+    static inline matrix make_row(size_type size, const std::vector<T>& data) {
         return matrix(1, size, data);
     }
 
-    static inline matrix column(index_type size) { return matrix(size, 1); }
+    static inline matrix make_column(size_type size) { return matrix(size, 1); }
 
-    static inline matrix column(index_type size, const std::vector<T>& data) {
+    static inline matrix make_column(size_type size,
+                                     const std::vector<T>& data) {
         return matrix(size, 1, data);
     }
 
@@ -245,8 +284,8 @@ private:
     // ************************** Member variables **************************
     // **********************************************************************
 
-    index_type rows_;
-    index_type columns_;
+    size_type rows_;
+    size_type columns_;
     std::vector<T> data_;
 };  // class matrix
 
@@ -279,7 +318,7 @@ template <class T>
 std::ostream& operator<<(std::ostream& os, const matrix<T>& matr) {
     for (std::size_t i = 0; i < matr.rows(); i++) {
         for (std::size_t j = 0; j < matr.columns(); j++) {
-            os << std::setw(8) << std::setprecision(4) << matr(i, j) << " ";
+            os << std::setw(15) << std::setprecision(8) << matr(i, j) << " ";
         }
         os << std::endl;
     }
@@ -296,6 +335,45 @@ std::istream& operator>>(std::istream& is, matrix<T>& matr) {
     }
 
     return is;
+}
+
+// ***********************************************************************
+// *********************** Special matrix creation ***********************
+// ***********************************************************************
+
+template <class T>
+matrix<T> make_eye(size_type size) {
+    return matrix<T>::make_eye(size);
+}
+
+template <class T>
+matrix<T> make_row(size_type size) {
+    return matrix<T>::make_row(size);
+}
+
+template <class T>
+matrix<T> make_row(size_type size, const std::vector<T>& data) {
+    return matrix<T>::make_row(size, data);
+}
+
+template <class T>
+matrix<T> make_row(index_type index, const matrix<T>& matr) {
+    return matr.row(index);
+}
+
+template <class T>
+matrix<T> make_column(size_type size) {
+    return matrix<T>::make_column(size);
+}
+
+template <class T>
+matrix<T> make_column(size_type size, const std::vector<T>& data) {
+    return matrix<T>::make_column(size, data);
+}
+
+template <class T>
+matrix<T> make_column(index_type index, const matrix<T>& matr) {
+    return matr.column(index);
 }
 
 }  // namespace chislaki

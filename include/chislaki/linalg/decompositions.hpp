@@ -12,16 +12,15 @@ namespace chislaki {
 // ***********************************************************************
 
 template <class T>
-std::tuple<matrix<T>, matrix<T>, matrix<T>> LUP_decomposition(
+std::tuple<matrix<T>, matrix<T>, matrix<T>, std::size_t> LUP_decomposition(
     const matrix<T>& matr) {
-    using index_type = typename matrix<T>::index_type;
-
     if (matr.rows() != matr.columns()) {
         throw bad_size{};
     }
 
+    std::size_t swap_count = 0;
     auto U = matr;
-    auto L = matrix<T>::eye(U.rows());
+    auto L = make_eye<T>(U.rows());
     auto P = L;
 
     auto max = [](auto&& matr, auto&& col_index, auto&& row_current) {
@@ -43,6 +42,7 @@ std::tuple<matrix<T>, matrix<T>, matrix<T>> LUP_decomposition(
         if (j != max_index) {
             U.swap_rows(j, max_index);
             P.swap_rows(j, max_index);
+            swap_count++;
         }
 
         for (index_type i = j + 1; i < U.rows(); i++) {
@@ -54,7 +54,7 @@ std::tuple<matrix<T>, matrix<T>, matrix<T>> LUP_decomposition(
         }
     }
 
-    return std::make_tuple(L, U, P);
+    return std::make_tuple(L, U, P, swap_count);
 }
 }  // namespace chislaki
 
