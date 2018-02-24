@@ -1,4 +1,6 @@
-#include <chislaki/linalg/utility.hpp>
+#include <chislaki/linalg/decompositions.hpp>
+
+#include <eigen3/Eigen/LU>
 
 using namespace chislaki;
 
@@ -19,16 +21,25 @@ int main() {
         std::cin >> b(i);
     }
 
-    auto[L, U, P, swap_count] = LUP_decomposition(A);
-    auto x = LUP_solver(A, b);
+    lup_decomposition lup(A);
 
-    std::cout << "************************** LU decomposition "
+    const auto& L = lup.matrix_l();
+    const auto& U = lup.matrix_u();
+    const auto& P = lup.matrix_p();
+    auto x = lup.solve(b);
+
+    std::cout << "******************************** A, b "
+                 "********************************\n"
+              << "A:\n"
+              << A << "b:\n"
+              << b
+              << "************************** LU decomposition "
                  "**************************\n"
               << "L:\n"
               << L << "U:\n"
               << U << "P:\n"
-              << P << "Checking: A = LUP\n"
-              << L * U * P
+              << P << "Checking: A = P^(T)LU\n"
+              << transpose(P) * L * U
               << "************************* Solve linear system "
                  "*************************\n"
                  "x:\n"
@@ -36,10 +47,10 @@ int main() {
               << A * x
               << "***************************** Determinant "
                  "*****************************\n"
-              << determinant(A) << std::endl
+              << lup.determinant() << std::endl
               << "****************************** Iversion "
                  "******************************\n"
               << "inverse(A):\n"
-              << inverse(A) << "Checking: A * inverse(A)\n"
-              << A * inverse(A);
+              << lup.inverse() << "Checking: A * inverse(A)\n"
+              << A * lup.inverse();
 }
