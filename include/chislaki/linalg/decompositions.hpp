@@ -36,10 +36,11 @@ std::tuple<matrix<T>, matrix<T>, matrix<T>, std::size_t> LUP_decomposition(
         return max_index;
     };
 
-    for (index_type j = 0; j < U.columns(); j++) {
+    for (index_type j = 0; j < U.columns() - 1; j++) {
         auto max_index = max(U, j, j);
+        auto need_swap = j != max_index;
 
-        if (j != max_index) {
+        if (need_swap) {
             U.swap_rows(j, max_index);
             P.swap_rows(j, max_index);
             swap_count++;
@@ -50,6 +51,12 @@ std::tuple<matrix<T>, matrix<T>, matrix<T>, std::size_t> LUP_decomposition(
 
             for (index_type k = j; k < U.columns(); k++) {
                 U(i, k) -= L(i, j) * U(j, k);
+            }
+        }
+
+        if (need_swap) {
+            for (index_type k = 0; k <= j; k++) {
+                std::swap(L(j + 1, k), L(max_index, k));
             }
         }
     }
