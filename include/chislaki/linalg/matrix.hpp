@@ -376,6 +376,21 @@ matrix<T> make_column(index_type index, const matrix<T>& matr) {
     return matr.column(index);
 }
 
+// **********************************************************************
+// ************************ Matrix transposition ************************
+// **********************************************************************
+
+template <class T>
+matrix<T> transpose(const matrix<T>& matr) noexcept {
+    auto result = matrix<T>(matr.columns(), matr.rows());
+    for (index_type j = 0; j < matr.columns(); j++) {
+        for (index_type i = 0; i < matr.rows(); i++) {
+            result(j, i) = matr(i, j);
+        }
+    }
+    return result;
+}
+
 }  // namespace chislaki
 
 #endif  // CHISLAKI_LINALG_MATRIX_HPP_
