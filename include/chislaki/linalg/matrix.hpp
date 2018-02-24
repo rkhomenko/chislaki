@@ -40,6 +40,8 @@ public:
     // **************************** Constructors ****************************
     // **********************************************************************
 
+    matrix() {}
+
     matrix(size_type n) : matrix(n, n) {}
 
     matrix(size_type rows, size_type columns)
