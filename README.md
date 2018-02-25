@@ -8,4 +8,4 @@ for numerical analysis course.
 It contains the following algorithms:
 1. Linear algebra:
     * LU decomposition
-    * Gaussian elimination
+    * Thomas algorithm
