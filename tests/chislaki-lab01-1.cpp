@@ -1,7 +1,5 @@
 #include <chislaki/linalg/decompositions.hpp>
 
-#include <eigen3/Eigen/LU>
-
 using namespace chislaki;
 
 int main() {
