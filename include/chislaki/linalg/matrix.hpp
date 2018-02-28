@@ -1,6 +1,7 @@
 #ifndef CHISLAKI_LINALG_MATRIX_HPP_
 #define CHISLAKI_LINALG_MATRIX_HPP_
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <vector>
@@ -22,8 +23,10 @@ public:
     using value_type = T;
     using reference = T&;
     using const_reference = const T&;
-    using iterator = T*;
-    using const_iterator = const T*;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using iterator = typename std::vector<T>::iterator;
+    using const_iterator = typename std::vector<T>::const_iterator;
 
     // **********************************************************************
     // ************************** Friend functions **************************
@@ -109,23 +112,21 @@ public:
     // ****************************** Raw data ******************************
     // **********************************************************************
 
-    inline const_iterator data() const noexcept { return data_.data(); }
+    inline const_pointer data() const noexcept { return data_.data(); }
 
-    inline iterator data() noexcept { return data_.data(); }
+    inline pointer data() noexcept { return data_.data(); }
 
     // ***********************************************************************
     // ****************************** Iterators ******************************
     // ***********************************************************************
 
-    inline const_iterator begin() const noexcept { return data(); }
+    inline const_iterator begin() const noexcept { return data_.begin(); }
 
-    inline iterator begin() noexcept { return data(); }
+    inline iterator begin() noexcept { return data_.begin(); }
 
-    inline const_iterator end() const noexcept {
-        return &data()[rows() * columns() - 1];
-    }
+    inline const_iterator end() const noexcept { return data_.end(); }
 
-    inline iterator end() noexcept { return &data()[rows() * columns() - 1]; }
+    inline iterator end() noexcept { return data_.end(); }
 
     // **********************************************************************
     // ****************************** Indexing ******************************
@@ -183,16 +184,14 @@ public:
     void swap_rows(index_type row1_index, index_type row2_index) {
         std::vector<T> row1(columns());
 
-        std::copy(data_.begin() + row1_index * columns(),
-                  data_.begin() + row1_index * columns() + columns(),
-                  row1.begin());
+        std::copy(begin() + row1_index * columns(),
+                  begin() + row1_index * columns() + columns(), row1.begin());
 
-        std::copy(data_.begin() + row2_index * columns(),
-                  data_.begin() + row2_index * columns() + columns(),
-                  data_.begin() + row1_index * columns());
+        std::copy(begin() + row2_index * columns(),
+                  begin() + row2_index * columns() + columns(),
+                  begin() + row1_index * columns());
 
-        std::copy(row1.begin(), row1.end(),
-                  data_.begin() + row2_index * columns());
+        std::copy(row1.begin(), row1.end(), begin() + row2_index * columns());
     }
 
     void swap_columns(index_type col1_index, index_type col2_index) {
@@ -330,10 +329,8 @@ std::ostream& operator<<(std::ostream& os, const matrix<T>& matr) {
 
 template <class T>
 std::istream& operator>>(std::istream& is, matrix<T>& matr) {
-    for (std::size_t i = 0; i < matr.rows(); i++) {
-        for (std::size_t j = 0; j < matr.columns(); j++) {
-            is >> matr(i, j);
-        }
+    for (auto& item : matr) {
+        is >> item;
     }
 
     return is;
@@ -391,6 +388,32 @@ matrix<T> transpose(const matrix<T>& matr) noexcept {
         }
     }
     return result;
+}
+
+// **********************************************************************
+// **************************** Matrix norms ****************************
+// **********************************************************************
+
+template <class T>
+T norm_inf(const matrix<T>& matr) noexcept {
+    std::vector<T> values;
+
+    if (matr.rows() == 1 || matr.columns() == 1) {
+        for (auto item : matr) {
+            values.push_back(std::abs(item));
+        }
+    } else {
+        for (index_type i = 0; i < matr.rows(); i++) {
+            T sum = {};
+            for (index_type j = 0; j < matr.columns(); j++) {
+                sum += std::abs(matr(i, j));
+            }
+            values.push_back(sum);
+        }
+    }
+    std::sort(std::begin(values), std::end(values));
+
+    return values.back();
 }
 
 }  // namespace chislaki
