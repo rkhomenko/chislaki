@@ -49,6 +49,47 @@ matrix<T> thomas_algorithm(const matrix<T>& matr, const matrix<T>& d) {
     return x;
 }
 
+// **********************************************************************
+// ************************ Fixed point iteration ************************
+// **********************************************************************
+
+template <class T>
+matrix<T> fixed_point_iteration(const matrix<T>& matr,
+                                const matrix<T>& b,
+                                T epsilon) {
+    if (matr.rows() != b.rows()) {
+        throw bad_size{};
+    }
+
+    auto betta = make_column<T>(b.rows());
+    auto alpha = matrix<T>(matr.rows(), matr.columns());
+
+    for (index_type i = 0; i < b.rows(); i++) {
+        betta(i) = b(i) / matr(i, i);
+    }
+
+    for (index_type i = 0; i < matr.rows(); i++) {
+        for (index_type j = 0; j < matr.columns(); j++) {
+            if (i != j) {
+                alpha(i, j) = -matr(i, j) / matr(i, i);
+            } else {
+                alpha(i, j) = 0;
+            }
+        }
+    }
+
+    auto x_k_1 = betta;
+    auto x_k = make_column<T>(betta.rows());
+    T norm = 0;
+    while ((norm = norm_inf(x_k - x_k_1)) && norm > epsilon) {
+        auto tmp = x_k;
+        x_k = betta + alpha * x_k_1;
+        x_k_1 = tmp;
+    }
+
+    return x_k;
+}
+
 }  // namespace chislaki
 
 #endif  // CHISLAKI_LINALG_UTILITY_HPP_
