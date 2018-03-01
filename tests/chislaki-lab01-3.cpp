@@ -20,5 +20,5 @@ int main(int argc, char** argv) {
     std::cin >> matr >> b;
 
     auto x = fixed_point_iteration(matr, b, epsilon);
-    std::cout << "Checking Ax = b:\n" << matr * x << b;
+    std::cout << "Checking Ax = b:\n" << matr * x << "b:\n" << b;
 }
