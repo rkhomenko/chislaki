@@ -92,33 +92,14 @@ matrix<T> fixed_point_iteration(const matrix<T>& matr,
                                 T epsilon) {
     auto[alpha, betta] = jacobi_transform(matr, b);
 
-    if (norm_inf(alpha) < 1) {
-        auto iter_count = (std::log10(epsilon) - std::log10(norm_inf(betta)) +
-                           std::log10(1 - norm_inf(alpha))) /
-                              std::log10(norm_inf(alpha)) -
-                          1;
-
-        std::cout << "Expected iteration count: " << std::ceil(iter_count)
-                  << std::endl;
-    } else {
-        std::cout << "Cannot expect iteration count! ||alpha|| = 1!"
-                  << std::endl;
-    }
-
     auto x_k_1 = betta;
     auto x_k = make_column<T>(betta.rows());
     T norm = 0;
-    size_type count = 1;
     while ((norm = norm_inf(x_k - x_k_1)) && norm > epsilon) {
         auto tmp = x_k;
         x_k = betta + alpha * x_k_1;
         x_k_1 = tmp;
-        count++;
-        std::cout << "||x_k - x_k-1|| = " << norm_inf(x_k - x_k_1)<< std::endl;
-        std::cout << "x_k:\n" << x_k;
     }
-
-    std::cout << "Iteration count: " << count << std::endl;
 
     return x_k;
 }
@@ -134,7 +115,6 @@ matrix<T> gauss_seidel(const matrix<T>& matr, const matrix<T>& b, T epsilon) {
     auto x_k_1 = betta;
     auto x_k = make_column<T>(betta.rows());
     T norm = 0;
-            size_type count = 0;
     while ((norm = norm_inf(x_k - x_k_1)) && norm > epsilon) {
         auto tmp = x_k;
         for (size_type i = 0; i < x_k.rows(); i++) {
@@ -147,12 +127,7 @@ matrix<T> gauss_seidel(const matrix<T>& matr, const matrix<T>& b, T epsilon) {
             }
         }
         x_k_1 = tmp;
-        std::cout << "||x_k - x_k-1|| = " << norm_inf(x_k - x_k_1) << std::endl;
-        std::cout << "x_k:\n" << x_k;
-        count++;
     }
-
-    std::cout << "Iteration count: " << count << std::endl;
 
     return x_k;
 }
