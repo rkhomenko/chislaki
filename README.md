@@ -12,3 +12,4 @@ It contains the following algorithms:
     * Jacobi transformation
     * Fixed point iterations method
     * Gauss-Seidel method
+    * Jacobi eigenvalues and eigenvectors method

@@ -298,7 +298,6 @@ template <class T>
 matrix<T> operator*(const matrix<T>& matr, T alpha) noexcept {
     matrix<T> result{matr.rows(), matr.columns()};
 
-    using index_type = typename matrix<T>::index_type;
     for (index_type i = 0; i < matr.rows() * matr.columns(); i++) {
         result.data_[i] = alpha * matr.data_[i];
     }
