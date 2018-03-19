@@ -3,6 +3,7 @@
 
 #include <chislaki/linalg/matrix.hpp>
 
+#include <cmath>
 #include <tuple>
 
 namespace chislaki {
@@ -194,6 +195,123 @@ private:
     matrix<T> p_;
     size_type permutations_count_;
 };  // class lup_decomposition
+
+// **********************************************************************
+// ************************** QR decomposition **************************
+// **********************************************************************
+
+template <class T>
+class qr_decomposition {
+public:
+    using value_type = matrix<T>;
+    using const_reference = const value_type&;
+
+    // **********************************************************************
+    // **************************** Constructors ****************************
+    // **********************************************************************
+
+    qr_decomposition() : computed_{false} {}
+
+    qr_decomposition(const_reference matr) : qr_decomposition() {
+        compute(matr);
+    }
+
+    // **********************************************************************
+    // ******************** QR decomposition calcualtion ********************
+    // **********************************************************************
+
+    void compute(const_reference matr) {
+        auto A = matr;
+        std::vector<matrix<T>> h_i;
+
+        for (index_type i = 0; i < matr.rows() - 1; i++) {
+            auto H = householder(A, i);
+            A = H * A;
+            h_i.push_back(H);
+        }
+        r_ = A;
+
+        q_ = make_eye<T>(matr.rows());
+        for (auto&& H : h_i) {
+            q_ = q_ * H;
+        }
+
+        computed_ = true;
+    }
+
+    // **********************************************************************
+    // ************************* Q, R matrix access *************************
+    // **********************************************************************
+
+    const_reference matrix_q() const {
+        if (!is_computed()) {
+            throw not_computed{};
+        }
+
+        return q_;
+    }
+
+    const_reference matrix_r() const {
+        if (!is_computed()) {
+            throw not_computed{};
+        }
+        return r_;
+    }
+
+    // **********************************************************************
+    // ************************* Householder matrix *************************
+    // **********************************************************************
+
+    static matrix<T> householder(const matrix<T>& matr, index_type index) {
+        auto sign = [](T value) {
+            return static_cast<int>((T(0) < value) - (value < T(0)));
+        };
+
+        auto calculate_v = [&sign](auto&& matr, index_type index) {
+            auto v = make_column<T>(matr.rows());
+
+            for (index_type i = 0; i < index; i++) {
+                v(i) = 0;
+            }
+
+            T sum = 0;
+            for (index_type i = index; i < matr.rows(); i++) {
+                sum += std::pow(matr(i, index), 2);
+            }
+
+            v(index) =
+                matr(index, index) + sign(matr(index, index)) * std::sqrt(sum);
+
+            for (index_type i = index + 1; i < matr.rows(); i++) {
+                v(i) = matr(i, index);
+            }
+
+            return v;
+        };
+
+        auto v = calculate_v(matr, index);
+
+        auto E = make_eye<T>(v.rows());
+        auto value = (v * transpose(v)) / (transpose(v) * v)(0);
+
+        return E - static_cast<T>(2) * value * E;
+    }
+
+private:
+    // **********************************************************************
+    // ********************** Private member functions **********************
+    // **********************************************************************
+
+    inline bool is_computed() const noexcept { return computed_; }
+
+    // **********************************************************************
+    // ************************** Member variables **************************
+    // **********************************************************************
+
+    bool computed_;
+    matrix<T> q_;
+    matrix<T> r_;
+};  // class qr_decomposition
 
 }  // namespace chislaki
 

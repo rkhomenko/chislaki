@@ -1,9 +1,14 @@
 #ifndef CHISLAKI_LINALG_UTILITY_HPP_
 #define CHISLAKI_LINALG_UTILITY_HPP_
 
+#include <chislaki/linalg/decompositions.hpp>
 #include <chislaki/linalg/matrix.hpp>
 
 #include <cmath>
+#include <complex>
+#include <functional>
+#include <map>
+#include <set>
 
 namespace chislaki {
 
@@ -291,6 +296,111 @@ private:
     matrix<T> u_;
     matrix<T> a_;
 };  // class jacobi_eigenvalues
+
+// **********************************************************************
+// *************************** QR eigenvalues ***************************
+// **********************************************************************
+
+template <class T>
+class qr_eigenvalues {
+public:
+    using value_type = matrix<T>;
+    using const_reference = const value_type&;
+    using complex = std::complex<T>;
+
+    // **********************************************************************
+    // **************************** Constructors ****************************
+    // **********************************************************************
+
+    qr_eigenvalues() : computed_{false}, epsilon_{1e-6} {}
+
+    qr_eigenvalues(const_reference matr, T epsilon) : qr_eigenvalues() {
+        compute(matr, epsilon);
+        computed_ = true;
+    }
+
+    // **********************************************************************
+    // *********************** Eigenvalues computation ***********************
+    // **********************************************************************
+
+    void compute(const_reference matr, T epsilon) {
+        using complex = std::complex<T>;
+        using complex_tuple = std::tuple<complex, complex>;
+        using map = std::map<index_type, complex_tuple>;
+
+        auto real_lambda_err = [](auto&& matr, auto&& index) {
+            T sum = 0;
+            for (index_type i = index + 1; i < matr.rows(); i++) {
+                sum += std::pow(matr(i, index), 2);
+            }
+            return std::sqrt(sum);
+        };
+
+        auto complex_lambda = [](auto&& matr, auto&& index) {
+            auto a = matr(index, index);
+            auto b = matr(index + 1, index + 1);
+            auto c = matr(index, index + 1);
+            auto d = matr(index + 1, index);
+
+            // (a - l)(b - l) = cd
+            auto D = complex(std::pow(a + b, 2) - 4 * (a * b - c * d));
+            auto l1 = static_cast<T>(0.5) * (complex(a + b) - std::sqrt(D));
+            auto l2 = static_cast<T>(0.5) * (complex(a + b) + std::sqrt(D));
+
+            return std::tuple(l1, l2);
+        };
+
+        auto complex_lambda_check = [](auto&& l_k, auto&& l_k_1,
+                                       auto&& epsilon) {
+            auto[l11, l12] = l_k;
+            auto[l21, l22] = l_k_1;
+
+            return std::abs(l11 - l21) < epsilon &&
+                   std::abs(l12 - l22) < epsilon;
+        };
+
+        auto H = qr_decomposition<T>::householder(matr, 1);
+        auto A = transpose(H) * matr * H;
+        auto l_k_1 = map();
+
+        size_type count = 50;
+        while (count-- != 0) {
+            qr_decomposition<T> qr(A);
+            A = qr.matrix_r() * qr.matrix_q();
+        }
+
+        for (index_type i = 0; i < A.rows(); i++) {
+            if (real_lambda_err(A, i) < epsilon) {
+                lambda_.push_back(complex(A(i, i)));
+            } else {
+                auto l12 = complex_lambda(A, i);
+                lambda_.push_back(std::get<0>(l12));
+                lambda_.push_back(std::get<1>(l12));
+                i++;
+            }
+        }
+    }
+
+    // **********************************************************************
+    // ************************* Eigenvalues access *************************
+    // **********************************************************************
+
+    complex get_value(index_type index) const {
+        if (index >= lambda_.size()) {
+            throw bad_size{};
+        }
+        return lambda_[index];
+    }
+
+private:
+    // **********************************************************************
+    // ************************** Member variables **************************
+    // **********************************************************************
+
+    bool computed_;
+    std::vector<complex> lambda_;
+    T epsilon_;
+};  // class qr_eigenvalues
 
 }  // namespace chislaki
 
