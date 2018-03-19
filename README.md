@@ -13,3 +13,5 @@ It contains the following algorithms:
     * Fixed point iterations method
     * Gauss-Seidel method
     * Jacobi eigenvalues and eigenvectors method
+    * QR decomposition
+    * Eigenvalues computation by QR decomposition
