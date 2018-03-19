@@ -38,6 +38,8 @@ public:
     template <class Type>
     friend matrix<Type> operator*(Type alpha,
                                   const matrix<Type>& matr) noexcept;
+    template <class Type>
+    friend matrix<Type> operator/(const matrix<Type>& matr, Type alpha) noexcept;
 
     // **********************************************************************
     // **************************** Constructors ****************************
@@ -308,6 +310,11 @@ matrix<T> operator*(const matrix<T>& matr, T alpha) noexcept {
 template <class T>
 matrix<T> operator*(T alpha, const matrix<T>& matr) noexcept {
     return matr * alpha;
+}
+
+template <class T>
+matrix<T> operator/(const matrix<T>& matr, T alpha) noexcept {
+    return (T{1} / alpha) * matr;
 }
 
 // **********************************************************************
