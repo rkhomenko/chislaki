@@ -6,9 +6,6 @@
 
 #include <cmath>
 #include <complex>
-#include <functional>
-#include <map>
-#include <set>
 
 namespace chislaki {
 
@@ -307,6 +304,7 @@ public:
     using value_type = matrix<T>;
     using const_reference = const value_type&;
     using complex = std::complex<T>;
+    using complex_tuple = std::tuple<complex, complex>;
 
     // **********************************************************************
     // **************************** Constructors ****************************
@@ -324,10 +322,6 @@ public:
     // **********************************************************************
 
     void compute(const_reference matr, T epsilon) {
-        using complex = std::complex<T>;
-        using complex_tuple = std::tuple<complex, complex>;
-        using map = std::map<index_type, complex_tuple>;
-
         auto real_lambda_err = [](auto&& matr, auto&& index) {
             T sum = 0;
             for (index_type i = index + 1; i < matr.rows(); i++) {
@@ -352,21 +346,43 @@ public:
 
         auto complex_lambda_check = [](auto&& l_k, auto&& l_k_1,
                                        auto&& epsilon) {
-            auto[l11, l12] = l_k;
-            auto[l21, l22] = l_k_1;
 
-            return std::abs(l11 - l21) < epsilon &&
-                   std::abs(l12 - l22) < epsilon;
+            std::cout << "**********************************\n"
+                      << std::get<0>(l_k) << std::endl
+                      << std::get<0>(l_k_1) << std::endl
+                      << std::abs(std::get<0>(l_k) - std::get<0>(l_k_1))
+                      << std::endl
+                      << "**********************************\n";
+            return std::abs(std::get<0>(l_k) - std::get<0>(l_k_1)) < epsilon;
         };
 
-        auto H = qr_decomposition<T>::householder(matr, 1);
-        auto A = transpose(H) * matr * H;
-        auto l_k_1 = map();
+        auto A = matr;
+        std::vector<complex_tuple> last_lambda(A.rows());
+        for (auto&& item : last_lambda) {
+            item = complex_tuple(0, 0);
+        }
 
-        size_type count = 50;
-        while (count-- != 0) {
+        bool need_iteration = true;
+        size_type iteration_count = 0;
+        while (need_iteration) {
             qr_decomposition<T> qr(A);
             A = qr.matrix_r() * qr.matrix_q();
+
+            need_iteration = false;
+            for (index_type i = 0; i < A.rows() - 1; i++) {
+                if (real_lambda_err(A, i) > epsilon) {
+                    auto current_lambda = complex_lambda(A, i);
+                    if (std::imag(std::get<0>(current_lambda)) == 0) {
+                        need_iteration = true;
+                    } else if (!complex_lambda_check(current_lambda,
+                                                     last_lambda[i], epsilon)) {
+                        last_lambda[i] = current_lambda;
+                        need_iteration = true;
+                    }
+                }
+            }
+            std::cout << "A:\n" << A;
+            std::cout << ++iteration_count << std::endl;
         }
 
         for (index_type i = 0; i < A.rows(); i++) {
