@@ -322,9 +322,9 @@ public:
     // **********************************************************************
 
     void compute(const_reference matr, T epsilon) {
-        auto real_lambda_err = [](auto&& matr, auto&& index) {
+        auto real_lambda_err = [](auto&& matr, auto&& index, auto&& shift) {
             T sum = 0;
-            for (index_type i = index + 1; i < matr.rows(); i++) {
+            for (index_type i = index + shift + 1; i < matr.rows(); i++) {
                 sum += std::pow(matr(i, index), 2);
             }
             return std::sqrt(sum);
@@ -370,14 +370,16 @@ public:
 
             need_iteration = false;
             for (index_type i = 0; i < A.rows() - 1; i++) {
-                if (real_lambda_err(A, i) > epsilon) {
-                    auto current_lambda = complex_lambda(A, i);
-                    if (std::imag(std::get<0>(current_lambda)) == 0) {
+                if (real_lambda_err(A, i, 0) > epsilon) {
+                    if (real_lambda_err(A, i, 1) > epsilon) {
                         need_iteration = true;
-                    } else if (!complex_lambda_check(current_lambda,
-                                                     last_lambda[i], epsilon)) {
-                        last_lambda[i] = current_lambda;
-                        need_iteration = true;
+                    } else {
+                        auto current_lambda = complex_lambda(A, i);
+                        if (!complex_lambda_check(current_lambda,
+                                                  last_lambda[i], epsilon)) {
+                            last_lambda[i] = current_lambda;
+                            need_iteration = true;
+                        }
                     }
                 }
             }
@@ -386,7 +388,7 @@ public:
         }
 
         for (index_type i = 0; i < A.rows(); i++) {
-            if (real_lambda_err(A, i) < epsilon) {
+            if (real_lambda_err(A, i, 0) < epsilon) {
                 lambda_.push_back(complex(A(i, i)));
             } else {
                 auto l12 = complex_lambda(A, i);
