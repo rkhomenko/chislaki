@@ -12,6 +12,8 @@
 
 \usepackage[normalem]{ulem}
 \usepackage{hyperref}
+\usepackage{listings}
+
 
 \begin{document}
 
@@ -489,7 +491,7 @@ b:
 \newpage
 
 \section{Нахождение собственных значений и собственных векторов}
-\subsection{Метод вращений}
+\subsection{Метод вращений Якоби}
 \subsubsection{Задание}
 Реализовать метод вращений в виде программы, задавая в качестве входных
 данных матрицу и точность вычислений. Используя разработанное программное
@@ -497,9 +499,78 @@ b:
 симметрических матриц. Проанализировать зависимость погрешности
 вычислений от числа итераций.
 
+\subsubsection{Метод вращений Якоби}
+Будем решать задачу нахождения собственных значений и собственных
+векторов матрицы $A$, а именно
+$$
+Ax = \lambda x.
+$$
+
+Рассматриваемый метод вращений работает только для симметрических
+матриц ($A = A^{T}$) и позволяет найти собственные значения и
+собственные векторы такой матрицы. С помощью итерационных
+процедур ищется преобразование подобия $\Lambda = U^{-1} A U$.
+Для симметрических матриц матрица преобразования подобия
+является ортогональной ($U^{-1} = U^{T}$), Поэтому
+$\Lambda = U^{T} A U$, где $\Lambda$ - диагональная матрица с
+собственными значениями на главной диагонали
+$$
+\Lambda =
+\begin{pmatrix}
+    \lambda_1 & \ldots & 0 \\
+    \ldots & \ddots & \ldots \\
+    0 & \ldots & \lambda_n
+\end{pmatrix}
+$$
+
+Пусть дана симметрическая матрица $A$. Требуется с точностью
+$\epsilon$ вычислить все её собственные значения и собственные
+векторы. Алгоритм метода вращений следующий:
+
+Пусть известна матрица $A^{(k)}$ на $k$-ой итерации, при этом
+$k = 0$ $A^{(0)} = A$.
+\begin{enumerate}
+    \item Выбирается максимальный по модулю недиагональный
+    элемент $a_{ij}^{(k)}$ матрицы $A^{(k)}$.
+    \item Ставится задача найти ортогональную матрицу $U^{(k)}$,
+    чтобы в результате преобразования подобия
+    $A^{(k + 1) = U^{(k) T} A^{(k)} U^{(k)}}$
+    произошло обнуление элемента $a_{lp}^{(k + 1)}$
+    матрицы $A^{(k + 1)}$. В качестве ортогональной выбирается
+    марица вращения на угол $\phi$, получаемая из единичной
+    заменой следующих элементов:
+    \begin{multline}
+    \\
+    u^{(k)}_{ll} = \cos{\phi^{(k)}} \\
+    u^{(k)}_{pl} = \sin{\phi^{(k)}} \\
+    u^{(k)}_{lp} = -\sin{\phi^{(k)}} \\
+    u^{(k)}_{pp} = \cos{\phi^{(k)}} \\
+    \end{multline}
+    Угол вращения определяется как
+    $$
+    \phi^{(k)} = \frac{1}{2}\arctg{\frac{2a_{lp}^{(k)}}{a_{ll}^{(k)} - a_{pp}^{(k)}}},
+    $$
+    или $\phi^{(k)} = \frac{\pi}{4}$, если $a_{ll}^{(k)} = a_{pp}^{(k)}$.
+
+\end{enumerate}
+
 \newpage
 
 \subsection{QR-алгоритм}
 
+\newpage
+
+\section{Исходный код}
+Исходный код доступен по ссылке
+\url{https://github.com/rkhomenko/chislaki}.
+
+\lstinputlisting[language=C++]{../../include/chislaki/linalg/matrix.hpp}
+\lstinputlisting[language=C++]{../../include/chislaki/linalg/decompositions.hpp}
+\lstinputlisting[language=C++]{../../include/chislaki/linalg/utility.hpp}
+\lstinputlisting[language=C++]{../../tests/chislaki-lab01-1.cpp}
+\lstinputlisting[language=C++]{../../tests/chislaki-lab01-2.cpp}
+\lstinputlisting[language=C++]{../../tests/chislaki-lab01-3.cpp}
+\lstinputlisting[language=C++]{../../tests/chislaki-lab01-4.cpp}
+\lstinputlisting[language=C++]{../../tests/chislaki-lab01-5.cpp}
 
 \end{document}
