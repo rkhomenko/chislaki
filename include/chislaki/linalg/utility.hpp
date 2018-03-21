@@ -247,6 +247,8 @@ public:
         while (off(a_) > get_epsilon()) {
             u_ = generate_u(a_);
             a_ = transpose(u_) * a_ * u_;
+            std::cout << "A:\n" << a_
+                      << "***********************************\n";
             u_i.push_back(u_);
         }
 
