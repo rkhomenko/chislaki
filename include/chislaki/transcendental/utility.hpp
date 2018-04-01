@@ -6,8 +6,12 @@
 
 namespace chislaki {
 
+// **********************************************************************
+// ************************ Fixed point iteration ***********************
+// **********************************************************************
+
 template <class T, class F>
-T fixed_point_iteration(T x0, T a, T b, T epsilon, F&& f) {
+T fixed_point_iteration_solver(T x0, T a, T b, T epsilon, F&& f) {
     auto x_max_derivative = minimize(a, 0.1, a, b, epsilon, [&f](auto&& x) {
         return -std::abs(diff(x, 1e-10, f));
     });
@@ -38,6 +42,28 @@ T fixed_point_iteration(T x0, T a, T b, T epsilon, F&& f) {
     }
 
     return x_k_1;
+}
+
+// **********************************************************************
+// **************************** Newton method ***************************
+// **********************************************************************
+
+template <class T, class F>
+T newton_solver(T x0, T epsilon, F&& f) {
+    auto x_k = x0;
+    auto x_k_1 = x0 + 1e-2;
+    auto x_k_2 = x0;
+
+    while (true) {
+        x_k_2 = x_k_1 - f(x_k_1) * (x_k_1 - x_k) / (f(x_k_1) - f(x_k));
+        if (std::abs(x_k_2 - x_k_1) < epsilon) {
+            break;
+        }
+        x_k = x_k_1;
+        x_k_1 = x_k_2;
+    }
+
+    return x_k_2;
 }
 
 }  // namespace chislaki

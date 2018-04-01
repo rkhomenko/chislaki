@@ -15,3 +15,6 @@ It contains the following algorithms:
     * Jacobi eigenvalues and eigenvectors method
     * QR decomposition
     * Eigenvalues computation by QR decomposition
+2. Nonlinear algebra:
+    * Fixed point iteration
+    * Newton method
