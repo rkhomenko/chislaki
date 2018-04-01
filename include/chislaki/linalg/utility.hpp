@@ -92,7 +92,7 @@ template <class T>
 matrix<T> fixed_point_iteration(const matrix<T>& matr,
                                 const matrix<T>& b,
                                 T epsilon) {
-    auto[alpha, betta] = jacobi_transform(matr, b);
+    auto [alpha, betta] = jacobi_transform(matr, b);
 
     if (norm_inf(alpha) < 1) {
         auto iter_count = (std::log10(epsilon) - std::log10(norm_inf(betta)) +
@@ -131,7 +131,7 @@ matrix<T> fixed_point_iteration(const matrix<T>& matr,
 
 template <class T>
 matrix<T> gauss_seidel(const matrix<T>& matr, const matrix<T>& b, T epsilon) {
-    auto[alpha, betta] = jacobi_transform(matr, b);
+    auto [alpha, betta] = jacobi_transform(matr, b);
 
     auto x_k_1 = betta;
     auto x_k = make_column<T>(betta.rows());
@@ -224,7 +224,7 @@ public:
         };
 
         auto generate_u = [](auto&& matr) {
-            auto[m, i, j] = max_nondiag(matr);
+            auto [m, i, j] = max_nondiag(matr);
             auto u = make_eye<T>(matr.rows());
 
             T phi = (matr(i, i) - matr(j, j) == 0)
@@ -247,8 +247,8 @@ public:
         while (off(a_) > get_epsilon()) {
             u_ = generate_u(a_);
             a_ = transpose(u_) * a_ * u_;
-            std::cout << "A:\n" << a_
-                      << "***********************************\n";
+            std::cout << "A:\n"
+                      << a_ << "***********************************\n";
             u_i.push_back(u_);
         }
 
@@ -348,13 +348,6 @@ public:
 
         auto complex_lambda_check = [](auto&& l_k, auto&& l_k_1,
                                        auto&& epsilon) {
-
-            std::cout << "**********************************\n"
-                      << std::get<0>(l_k) << std::endl
-                      << std::get<0>(l_k_1) << std::endl
-                      << std::abs(std::get<0>(l_k) - std::get<0>(l_k_1))
-                      << std::endl
-                      << "**********************************\n";
             return std::abs(std::get<0>(l_k) - std::get<0>(l_k_1)) < epsilon;
         };
 
@@ -365,7 +358,6 @@ public:
         }
 
         bool need_iteration = true;
-        size_type iteration_count = 0;
         while (need_iteration) {
             qr_decomposition<T> qr(A);
             A = qr.matrix_r() * qr.matrix_q();
@@ -385,8 +377,6 @@ public:
                     }
                 }
             }
-            std::cout << "A:\n" << A;
-            std::cout << ++iteration_count << std::endl;
         }
 
         for (index_type i = 0; i < A.rows(); i++) {
