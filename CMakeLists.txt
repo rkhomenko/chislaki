@@ -17,6 +17,7 @@ set(SOURCE_SUFFIX "cpp")
 set(INCLUDE_DIR "include")
 set(SOURCE_DIR "src")
 set(TEST_DIR "tests")
+set(t)
 
 file(GLOB_RECURSE INCLUDES "${INCLUDE_DIR}/*.${HEADER_SUFFIX}")
 
