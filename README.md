@@ -18,3 +18,5 @@ It contains the following algorithms:
 2. Nonlinear algebra:
     * Fixed point iteration
     * Newton method
+    * Fixed point iteration for system of equations
+    * Newton method for system of equations

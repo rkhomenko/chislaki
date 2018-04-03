@@ -21,7 +21,9 @@ T diff(const matrix<T>& x, T delta, index_type i, F&& f) {
 }
 
 template <class T, class F, size_type N = 2>
-matrix<T> jacobi_matrix(const matrix<T>& x, T delta, const std::array<F, N>& f) {
+matrix<T> jacobi_matrix(const matrix<T>& x,
+                        T delta,
+                        const std::array<F, N>& f) {
     auto result = matrix<T>(N, x.rows());
 
     for (index_type i = 0; i < N; i++) {

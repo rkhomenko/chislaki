@@ -108,6 +108,42 @@ matrix<T> fixed_point_iteration_solver(const matrix<T>& x0,
     return x_k_1;
 }
 
+// **********************************************************************
+// *************************** Newton method ****************************
+// *************************** system solver ****************************
+// **********************************************************************
+
+template <class T, class F, size_type N>
+matrix<T> newton_solver(const matrix<T>& x0,
+                                       T epsilon,
+                                       std::array<F, N> f) {
+    auto J = jacobi_matrix(x0, epsilon, f);
+
+    lup_decomposition<T> lup(J);
+    auto Jinv = lup.inverse();
+
+    auto f_v = [&f](auto&& x) {
+        auto result = make_column<T>(N);
+        for (index_type i = 0; i < N; i++) {
+            result(i) = f[i](x);
+        }
+
+        return result;
+    };
+
+    auto x_k = x0;
+    auto x_k_1 = x0;
+    while (true) {
+        x_k_1 = x_k - Jinv * f_v(x_k);
+        if (norm_inf(x_k_1 - x_k) < epsilon) {
+            break;
+        }
+        x_k = x_k_1;
+    }
+
+    return x_k_1;
+}
+
 }  // namespace chislaki
 
 #endif  // CHISLAKI_TRANSCENDENTAL_UTILITY_HPP_

@@ -69,6 +69,15 @@ int main(int argc, char** argv) {
                   << x2 << "f1(x2) = " << f1(x2) << std::endl
                   << "f2(x2) = " << f2(x2) << std::endl;
     } else if (std::string(argv[1]) == "n") {
+        auto x1 = newton_solver(x01, epsilon, func_array);
+        auto x2 = newton_solver(x02, epsilon, func_array);
+
+        std::cout << "x1 = \n"
+                  << x1 << "f1(x1) = " << f1(x1) << std::endl
+                  << "f2(x1) = " << f2(x1) << std::endl;
+        std::cout << "x2 = \n"
+                  << x2 << "f1(x2) = " << f1(x2) << std::endl
+                  << "f2(x2) = " << f2(x2) << std::endl;
     } else {
         std::cout << "Bad method name!" << std::endl;
     }
