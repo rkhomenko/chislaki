@@ -3,9 +3,9 @@
 
 #include <chislaki/matan/differentiation.hpp>
 
-#include <cmath>
+#include <algorithm>
 #include <limits>
-#include <iostream>
+#include <set>
 
 namespace chislaki {
 
