@@ -20,3 +20,6 @@ It contains the following algorithms:
     * Newton method
     * Fixed point iteration for system of equations
     * Newton method for system of equations
+3. Matan:
+    * Lagrange polynom interpolation
+    * Newton polynom interpolation
