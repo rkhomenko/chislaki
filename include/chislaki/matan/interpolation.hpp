@@ -52,12 +52,6 @@ class newton_polynom {
 public:
     newton_polynom(const matrix<T>& x, const matrix<T>& y) : x_{x}, y_{y} {
         calc_diff();
-        for (index_type i = 0; i < diff_.size(); i++) {
-            for (index_type j = 0; j < diff_[i].size(); j++) {
-                std::cout << diff_[i][j] << " ";
-            }
-            std::cout << std::endl;
-        }
     }
 
     T operator()(T x) {
