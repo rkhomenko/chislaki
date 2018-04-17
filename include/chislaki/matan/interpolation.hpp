@@ -1,6 +1,7 @@
 #ifndef CHISLAKI_MATAN_INTERPOLATION_HPP_
 #define CHISLAKI_MATAN_INTERPOLATION_HPP_
 
+#include <chislaki/linalg/decompositions.hpp>
 #include <chislaki/linalg/matrix.hpp>
 #include <chislaki/linalg/utility.hpp>
 
@@ -93,6 +94,10 @@ private:
     matrix<T> y_;
     std::vector<std::vector<T>> diff_;
 };
+
+// **********************************************************************
+// **************************** Cubic spline ****************************
+// **********************************************************************
 
 template <class T>
 class cubic_spline {
@@ -190,6 +195,115 @@ private:
     matrix<T> x_;
     matrix<T> y_;
     std::vector<std::vector<T>> coeffs_;
+};
+
+// **********************************************************************
+// ************************ Linear least squares ************************
+// **********************************************************************
+
+template <class T>
+class linear_least_squares {
+public:
+    linear_least_squares(const matrix<T>& x, const matrix<T>& y)
+        : x_{x}, y_{y} {
+        calculate_coeffs();
+    }
+
+    T operator()(T x) { return coeffs_(0) + coeffs_(1) * x; }
+
+    const matrix<T>& get_coeffs() const { return coeffs_; }
+
+private:
+    void calculate_coeffs() {
+        auto x_sum = [&](auto&& n) {
+            T result = 0;
+            for (index_type i = 0; i < x_.rows(); i++) {
+                result += std::pow(x_(i), n);
+            }
+            return result;
+        };
+
+        auto x_y_sum = [&](auto&& n) {
+            T result = 0;
+            for (index_type i = 0; i < x_.rows(); i++) {
+                result += y_(i) * std::pow(x_(i), n);
+            }
+            return result;
+        };
+
+        auto matr = matrix<T>(2);
+        for (index_type i = 0; i < matr.rows(); i++) {
+            for (index_type j = 0; j < matr.columns(); j++) {
+                matr(i, j) = x_sum(i + j);
+            }
+        }
+
+        auto b = make_column<T>(2);
+        b(0) = x_y_sum(0);
+        b(1) = x_y_sum(1);
+
+        coeffs_ = lup_decomposition(matr).solve(b);
+    }
+
+    matrix<T> x_;
+    matrix<T> y_;
+    matrix<T> coeffs_;
+};
+
+// **********************************************************************
+// ************************ Square least squares ************************
+// **********************************************************************
+
+template <class T>
+class square_least_squares {
+public:
+    square_least_squares(const matrix<T>& x, const matrix<T>& y)
+        : x_{x}, y_{y} {
+        calculate_coeffs();
+    }
+
+    T operator()(T x) {
+        return coeffs_(0) + coeffs_(1) * x + coeffs_(2) * x * x;
+    }
+
+    const matrix<T>& get_coeffs() const { return coeffs_; }
+
+private:
+    void calculate_coeffs() {
+        auto x_sum = [&](auto&& n) {
+            T result = 0;
+            for (index_type i = 0; i < x_.rows(); i++) {
+                result += std::pow(x_(i), n);
+            }
+            return result;
+        };
+
+        auto x_y_sum = [&](auto&& n) {
+            T result = 0;
+            for (index_type i = 0; i < x_.rows(); i++) {
+                result += y_(i) * std::pow(x_(i), n);
+            }
+            return result;
+        };
+
+        auto matr = matrix<T>(3);
+        for (index_type i = 0; i < matr.rows(); i++) {
+            for (index_type j = 0; j < matr.columns(); j++) {
+                matr(i, j) = x_sum(i + j);
+            }
+        }
+
+        auto b = make_column<T>(3);
+        for (index_type i = 0; i < b.rows(); i++) {
+            b(i) = x_y_sum(i);
+        }
+
+        coeffs_ = lup_decomposition(matr).solve(b);
+    }
+
+    matrix<T> x_;
+    matrix<T> y_;
+    matrix<T> coeffs_;
 };
 
 }  // namespace chislaki
