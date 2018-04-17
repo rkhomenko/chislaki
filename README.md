@@ -23,3 +23,4 @@ It contains the following algorithms:
 3. Matan:
     * Lagrange polynom interpolation
     * Newton polynom interpolation
+    * Cubic spline interpolation
