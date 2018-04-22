@@ -30,7 +30,7 @@ int main() {
     auto pi = 4 * std::atan(1.0);
     auto x0 = pi / 4;
     auto x1 = make_column<double>(
-        4, std::vector<double>{0, pi / 8, pi / 4, 3 * pi / 8});
+        4, std::vector<double>{0, pi / 6, pi / 3, pi / 2});
     auto x2 = make_column<double>(
         4, std::vector<double>{0, pi / 6, 5 * pi / 12, pi / 2});
     auto x_che = chebyshev_nodes(20);
