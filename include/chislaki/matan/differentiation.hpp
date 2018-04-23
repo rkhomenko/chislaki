@@ -35,6 +35,42 @@ matrix<T> jacobi_matrix(const matrix<T>& x,
     return result;
 }
 
+template <class T>
+T diff1(T x0, const matrix<T>& x, const matrix<T>& y) {
+    index_type i = 0;
+    for (index_type j = 0; j < x.rows() - 1; j++) {
+        if (x(j) <= x0 && x0 <= x(j + 1)) {
+            i = j;
+            break;
+        }
+    }
+
+    auto y_ = [&y](auto&& i1, auto&& i2) { return y(i1) - y(i2); };
+    auto x_ = [&x](auto&& i1, auto&& i2) { return x(i1) - x(i2); };
+
+    return y_(i + 1, i) / x_(i + 1, i) +
+           (y_(i + 2, i + 1) / x_(i + 2, i + 1) - y_(i + 1, i) / x_(i + 1, i)) /
+               x_(i + 2, i) * (2 * x0 - x(i) - x(i + 1));
+}
+
+template <class T>
+T diff2(T x0, const matrix<T>& x, const matrix<T>& y) {
+    index_type i = 0;
+    for (index_type j = 0; j < x.rows() - 1; j++) {
+        if (x(j) <= x0 && x0 <= x(j + 1)) {
+            i = j;
+            break;
+        }
+    }
+
+    auto y_ = [&y](auto&& i1, auto&& i2) { return y(i1) - y(i2); };
+    auto x_ = [&x](auto&& i1, auto&& i2) { return x(i1) - x(i2); };
+
+    return 2 *
+           (y_(i + 2, i + 1) / x_(i + 2, i + 1) - y_(i + 1, i) / x_(i + 1, i)) /
+           x_(i + 2, i);
+}
+
 }  // namespace chislaki
 
 #endif  // CHISLAKI_MATHAN_DIFFERENTIATION_HPP_
