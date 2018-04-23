@@ -24,3 +24,6 @@ It contains the following algorithms:
     * Lagrange polynom interpolation
     * Newton polynom interpolation
     * Cubic spline interpolation
+    * Ordinary Least Squares
+    * Numeric differentiation
+    * Numeric integration
